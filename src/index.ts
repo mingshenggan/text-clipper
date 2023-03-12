@@ -154,6 +154,46 @@ const SIMPLIFY_WHITESPACE_REGEX = /\s+/g;
  *
  * @return The clipped string.
  */
+export function clipCustom(string: string, maxLength: number, options: ClipOptions = {}): string {
+  let clipped = clip(string, maxLength, options)
+
+  let lastTerminationIndex = indexOfSentenceTerminator(clipped)
+  if (lastTerminationIndex !== clipped.length - 1) {
+    if (isBetweenHtmlTags(clipped, lastTerminationIndex)) {
+      return clip(clipped, lastTerminationIndex+1, options)
+    }
+    return clipped.substring(0, lastTerminationIndex+1) + " \u2026"
+  }
+
+  return clipped
+}
+
+function isBetweenHtmlTags(string: string, index: number): boolean {
+  for (let i = index+1; i < string.length; i++) {
+    if (string.charAt(i) === '<') return true
+  }
+  return false
+}
+
+function indexOfSentenceTerminator(string: string): number {
+    for (let i = string.length - 1; i > 0; i--) {
+        if (isSentenceTerminator(string.charCodeAt(i))) {
+            return i;
+        }
+    }
+    // Rather than -1, this function returns the length of the string if no match is found,
+    // so it works well with the Math.min() usage above:
+    return string.length - 1
+}
+
+function isSentenceTerminator(charCode: number): boolean {
+    return (
+        charCode === 46 || // fullstop
+        charCode === 63 || // question mark
+      charCode === 33 // exclamation mark
+    );
+}
+
 export default function clip(string: string, maxLength: number, options: ClipOptions = {}): string {
     if (!string) {
         return "";

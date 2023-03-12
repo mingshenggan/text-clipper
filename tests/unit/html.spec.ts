@@ -1,49 +1,102 @@
 import clip from "../../src";
+import { clipCustom } from "../../src";
+
+test("html: our requirements", () => {
+  const options = { html: true, breakWords: false };
+  expect(clipCustom("Lorum <a href='#'>ipsum</a>", 8, options)).toBe("Lorum <a href='#'>i\u2026</a>");
+  expect(clipCustom("Hello world. I am <a href='#'>good</a>", 17, options)).toBe("Hello world. \u2026");
+  expect(clipCustom("Hello world! I am <a href='#'>good</a>", 17, options)).toBe("Hello world! \u2026");
+  expect(clipCustom("Hello <p>world</p>! I am <a href='#'>good</a>", 17, options)).toBe("Hello <p>world</p>! \u2026");
+  expect(clipCustom("Hello <p>world!</p> I am <a href='#'>good</a>", 17, options)).toBe("Hello <p>world!</p> \u2026");
+  expect(clipCustom("Hello <p>world! I am <a href='#'>good</a></p>", 17, options)).toBe("Hello <p>world! \u2026</p>");
+
+  expect(clipCustom("<p>Lorum ipsum</p>", 5, options)).toBe("<p>Loru\u2026</p>");
+  expect(clipCustom("<p><i>Lorum</i> <i>ipsum</i></p>", 5, options)).toBe("<p><i>Loru\u2026</i></p>");
+  expect(clipCustom("<p><i>Lorum</i> <i>ipsum</i></p>", 6, options)).toBe("<p><i>Lorum</i>\u2026</p>");
+  expect(clipCustom("<p><i>Lorum</i> <i>ipsum</i></p>", 7, options)).toBe("<p><i>Lorum</i> \u2026</p>");
+  expect(clipCustom("<p><i>Lorum</i>\n<i>ipsum</i></p>", 5, options)).toBe("<p><i>Lorum</i></p>");
+  expect(clipCustom("<p><i>Lorum</i><br><i>ipsum</i></p>", 5, options)).toBe("<p><i>Lorum</i></p>");
+
+  expect(clipCustom("<p><i>Lorum</i></p>", 5, options)).toBe("<p><i>Lorum</i></p>");
+
+  expect(clipCustom("<p><i>Lorum</i>a</p>", 5, options)).toBe("<p><i>Loru\u2026</i></p>");
+  expect(clipCustom("<p><i>Lorum</i></p>a", 5, options)).toBe("<p><i>Loru\u2026</i></p>");
+  expect(clipCustom("<p><i>Lorum</i>a</p>", 6, options)).toBe("<p><i>Lorum</i>a</p>");
+  expect(clipCustom("<p><i>Lorum</i></p>a", 6, options)).toBe("<p><i>Lorum</i></p>a");
+  expect(clipCustom("<p><i>Lorum</i>aA</p>", 6, options)).toBe("<p><i>Lorum</i>\u2026</p>");
+  expect(clipCustom("<p><i>Lorum</i></p>aA", 6, options)).toBe("<p><i>Lorum</i></p>\u2026");
+  expect(clipCustom("<p><i>Lorum</i>a</p>", 7, options)).toBe("<p><i>Lorum</i>a</p>");
+  expect(clipCustom("<p><i>Lorum</i></p>a", 7, options)).toBe("<p><i>Lorum</i></p>a");
+  expect(clipCustom("<p><i>Lorum</i>aA</p>", 7, options)).toBe("<p><i>Lorum</i>aA</p>");
+  expect(clipCustom("<p><i>Lorum</i></p>aA", 7, options)).toBe("<p><i>Lorum</i></p>aA");
+
+  expect(clipCustom("<p><i>Lorum</i> </p>", 5, options)).toBe("<p><i>Loru\u2026</i></p>");
+  expect(clipCustom("<p><i>Lorum</i></p> ", 5, options)).toBe("<p><i>Loru\u2026</i></p>");
+  expect(clipCustom("<p><i>Lorum</i> </p>", 6, options)).toBe("<p><i>Lorum</i> </p>");
+  expect(clipCustom("<p><i>Lorum</i></p> ", 6, options)).toBe("<p><i>Lorum</i></p> ");
+  expect(clipCustom("<p><i>Lorum</i>  </p>", 6, options)).toBe("<p><i>Lorum</i>\u2026</p>");
+  expect(clipCustom("<p><i>Lorum</i></p>  ", 6, options)).toBe("<p><i>Lorum</i></p>\u2026");
+  expect(clipCustom("<p><i>Lorum</i> </p>", 7, options)).toBe("<p><i>Lorum</i> </p>");
+  expect(clipCustom("<p><i>Lorum</i></p> ", 7, options)).toBe("<p><i>Lorum</i></p> ");
+  expect(clipCustom("<p><i>Lorum</i>  </p>", 7, options)).toBe("<p><i>Lorum</i>  </p>");
+  expect(clipCustom("<p><i>Lorum</i></p>  ", 7, options)).toBe("<p><i>Lorum</i></p>  ");
+
+  expect(clipCustom("Lo<ins>rum</ins>", 4, options)).toBe("Lo<ins>r\u2026</ins>");
+  expect(clipCustom("Lo<del>rum</del>", 4, options)).toBe("Lo<del>r\u2026</del>");
+
+  expect(clipCustom('<a href="http://just-a-link.com">Just a link</a>', 8, options)).toBe(
+      '<a href="http://just-a-link.com">Just a \u2026</a>',
+  );
+
+  expect(clipCustom('<a href="http://just-a-link.com">Just a link</a>, yo', 13, options)).toBe(
+      '<a href="http://just-a-link.com">Just a link</a>,\u2026',
+  );
+})
 
 test("html: test basic HTML", () => {
-    const options = { html: true };
+  const options = { html: true };
 
-    expect(clip("<p>Lorum ipsum</p>", 5, options)).toBe("<p>Loru\u2026</p>");
-    expect(clip("<p><i>Lorum</i> <i>ipsum</i></p>", 5, options)).toBe("<p><i>Loru\u2026</i></p>");
-    expect(clip("<p><i>Lorum</i> <i>ipsum</i></p>", 6, options)).toBe("<p><i>Lorum</i>\u2026</p>");
-    expect(clip("<p><i>Lorum</i> <i>ipsum</i></p>", 7, options)).toBe("<p><i>Lorum</i> \u2026</p>");
-    expect(clip("<p><i>Lorum</i>\n<i>ipsum</i></p>", 5, options)).toBe("<p><i>Lorum</i></p>");
-    expect(clip("<p><i>Lorum</i><br><i>ipsum</i></p>", 5, options)).toBe("<p><i>Lorum</i></p>");
+  expect(clipCustom("<p>Lorum ipsum</p>", 5, options)).toBe("<p>Loru\u2026</p>");
+  expect(clipCustom("<p><i>Lorum</i> <i>ipsum</i></p>", 5, options)).toBe("<p><i>Loru\u2026</i></p>");
+  expect(clipCustom("<p><i>Lorum</i> <i>ipsum</i></p>", 6, options)).toBe("<p><i>Lorum</i>\u2026</p>");
+  expect(clipCustom("<p><i>Lorum</i> <i>ipsum</i></p>", 7, options)).toBe("<p><i>Lorum</i> \u2026</p>");
+  expect(clipCustom("<p><i>Lorum</i>\n<i>ipsum</i></p>", 5, options)).toBe("<p><i>Lorum</i></p>");
+  expect(clipCustom("<p><i>Lorum</i><br><i>ipsum</i></p>", 5, options)).toBe("<p><i>Lorum</i></p>");
 
-    expect(clip("<p><i>Lorum</i></p>", 5, options)).toBe("<p><i>Lorum</i></p>");
+  expect(clipCustom("<p><i>Lorum</i></p>", 5, options)).toBe("<p><i>Lorum</i></p>");
 
-    expect(clip("<p><i>Lorum</i>a</p>", 5, options)).toBe("<p><i>Loru\u2026</i></p>");
-    expect(clip("<p><i>Lorum</i></p>a", 5, options)).toBe("<p><i>Loru\u2026</i></p>");
-    expect(clip("<p><i>Lorum</i>a</p>", 6, options)).toBe("<p><i>Lorum</i>a</p>");
-    expect(clip("<p><i>Lorum</i></p>a", 6, options)).toBe("<p><i>Lorum</i></p>a");
-    expect(clip("<p><i>Lorum</i>aA</p>", 6, options)).toBe("<p><i>Lorum</i>\u2026</p>");
-    expect(clip("<p><i>Lorum</i></p>aA", 6, options)).toBe("<p><i>Lorum</i></p>\u2026");
-    expect(clip("<p><i>Lorum</i>a</p>", 7, options)).toBe("<p><i>Lorum</i>a</p>");
-    expect(clip("<p><i>Lorum</i></p>a", 7, options)).toBe("<p><i>Lorum</i></p>a");
-    expect(clip("<p><i>Lorum</i>aA</p>", 7, options)).toBe("<p><i>Lorum</i>aA</p>");
-    expect(clip("<p><i>Lorum</i></p>aA", 7, options)).toBe("<p><i>Lorum</i></p>aA");
+  expect(clipCustom("<p><i>Lorum</i>a</p>", 5, options)).toBe("<p><i>Loru\u2026</i></p>");
+  expect(clipCustom("<p><i>Lorum</i></p>a", 5, options)).toBe("<p><i>Loru\u2026</i></p>");
+  expect(clipCustom("<p><i>Lorum</i>a</p>", 6, options)).toBe("<p><i>Lorum</i>a</p>");
+  expect(clipCustom("<p><i>Lorum</i></p>a", 6, options)).toBe("<p><i>Lorum</i></p>a");
+  expect(clipCustom("<p><i>Lorum</i>aA</p>", 6, options)).toBe("<p><i>Lorum</i>\u2026</p>");
+  expect(clipCustom("<p><i>Lorum</i></p>aA", 6, options)).toBe("<p><i>Lorum</i></p>\u2026");
+  expect(clipCustom("<p><i>Lorum</i>a</p>", 7, options)).toBe("<p><i>Lorum</i>a</p>");
+  expect(clipCustom("<p><i>Lorum</i></p>a", 7, options)).toBe("<p><i>Lorum</i></p>a");
+  expect(clipCustom("<p><i>Lorum</i>aA</p>", 7, options)).toBe("<p><i>Lorum</i>aA</p>");
+  expect(clipCustom("<p><i>Lorum</i></p>aA", 7, options)).toBe("<p><i>Lorum</i></p>aA");
 
-    expect(clip("<p><i>Lorum</i> </p>", 5, options)).toBe("<p><i>Loru\u2026</i></p>");
-    expect(clip("<p><i>Lorum</i></p> ", 5, options)).toBe("<p><i>Loru\u2026</i></p>");
-    expect(clip("<p><i>Lorum</i> </p>", 6, options)).toBe("<p><i>Lorum</i> </p>");
-    expect(clip("<p><i>Lorum</i></p> ", 6, options)).toBe("<p><i>Lorum</i></p> ");
-    expect(clip("<p><i>Lorum</i>  </p>", 6, options)).toBe("<p><i>Lorum</i>\u2026</p>");
-    expect(clip("<p><i>Lorum</i></p>  ", 6, options)).toBe("<p><i>Lorum</i></p>\u2026");
-    expect(clip("<p><i>Lorum</i> </p>", 7, options)).toBe("<p><i>Lorum</i> </p>");
-    expect(clip("<p><i>Lorum</i></p> ", 7, options)).toBe("<p><i>Lorum</i></p> ");
-    expect(clip("<p><i>Lorum</i>  </p>", 7, options)).toBe("<p><i>Lorum</i>  </p>");
-    expect(clip("<p><i>Lorum</i></p>  ", 7, options)).toBe("<p><i>Lorum</i></p>  ");
+  expect(clipCustom("<p><i>Lorum</i> </p>", 5, options)).toBe("<p><i>Loru\u2026</i></p>");
+  expect(clipCustom("<p><i>Lorum</i></p> ", 5, options)).toBe("<p><i>Loru\u2026</i></p>");
+  expect(clipCustom("<p><i>Lorum</i> </p>", 6, options)).toBe("<p><i>Lorum</i> </p>");
+  expect(clipCustom("<p><i>Lorum</i></p> ", 6, options)).toBe("<p><i>Lorum</i></p> ");
+  expect(clipCustom("<p><i>Lorum</i>  </p>", 6, options)).toBe("<p><i>Lorum</i>\u2026</p>");
+  expect(clipCustom("<p><i>Lorum</i></p>  ", 6, options)).toBe("<p><i>Lorum</i></p>\u2026");
+  expect(clipCustom("<p><i>Lorum</i> </p>", 7, options)).toBe("<p><i>Lorum</i> </p>");
+  expect(clipCustom("<p><i>Lorum</i></p> ", 7, options)).toBe("<p><i>Lorum</i></p> ");
+  expect(clipCustom("<p><i>Lorum</i>  </p>", 7, options)).toBe("<p><i>Lorum</i>  </p>");
+  expect(clipCustom("<p><i>Lorum</i></p>  ", 7, options)).toBe("<p><i>Lorum</i></p>  ");
 
-    expect(clip("Lo<ins>rum</ins>", 4, options)).toBe("Lo<ins>r\u2026</ins>");
-    expect(clip("Lo<del>rum</del>", 4, options)).toBe("Lo<del>r\u2026</del>");
+  expect(clipCustom("Lo<ins>rum</ins>", 4, options)).toBe("Lo<ins>r\u2026</ins>");
+  expect(clipCustom("Lo<del>rum</del>", 4, options)).toBe("Lo<del>r\u2026</del>");
 
-    expect(clip('<a href="http://just-a-link.com">Just a link</a>', 8, options)).toBe(
-        '<a href="http://just-a-link.com">Just a \u2026</a>',
-    );
+  expect(clipCustom('<a href="http://just-a-link.com">Just a link</a>', 8, options)).toBe(
+      '<a href="http://just-a-link.com">Just a \u2026</a>',
+  );
 
-    expect(clip('<a href="http://just-a-link.com">Just a link</a>, yo', 13, options)).toBe(
-        '<a href="http://just-a-link.com">Just a link</a>,\u2026',
-    );
+  expect(clipCustom('<a href="http://just-a-link.com">Just a link</a>, yo', 13, options)).toBe(
+      '<a href="http://just-a-link.com">Just a link</a>,\u2026',
+  );
 });
 
 test("html: test HTML comments", () => {
